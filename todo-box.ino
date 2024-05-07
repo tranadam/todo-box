@@ -171,7 +171,7 @@ byte todoDayResults() {
  * passed through the mask were done
  */
 unsigned int countCurrentStreak(byte todoMask) {
-    unsigned int latestDay = getDayIndex();
+    unsigned int latestDay = getDayIndex() - 1;
     unsigned int streak = 0;
     for (unsigned int dayIndex = latestDay; dayIndex >= firstDayIndex; --dayIndex) {
         byte value;
@@ -231,7 +231,7 @@ void showSaveValidation() {
     lcd.setCursor(0, 1);
     lcd.print("RESULT: ");
     for (const Todo& item: todos) {
-        byte flagBit = 0b00000001 << item.index
+        byte flagBit = 0b00000001 << item.index;
         lcd.print((todoDayResults() & flagBit) ^ flagBit ? '-' : '+');
     }
     delay(2000);
@@ -276,7 +276,8 @@ void blinkLeds() {
  */
 void saveAndReset() {
     EEPROM.update(getDayIndex(), todoDayResults());
-
+    incrementDayIndex();
+    
     lcd.backlight();
     showSaveValidation();
     showStats();
@@ -287,7 +288,6 @@ void saveAndReset() {
     for (Todo& item: todos) {
         item.isDone = false;
     }
-    incrementDayIndex();
 
     // Reset save switch position in case it was moved
     saveSwitch.lastState = digitalRead(saveSwitch.pin);
@@ -302,7 +302,16 @@ void showInitMsg() {
     lcd.print("TODO BOX");
     lcd.setCursor(5, 1);
     lcd.print("BI-ARD");
-    delay(2000);
+    delay(1000);
+
+    clearDisplay();
+    lcd.setCursor(0, 0);
+    lcd.print("DAY: ");
+    lcd.print(getDayIndex() - firstDayIndex + 1);
+    lcd.setCursor(0,1);
+    lcd.print("STREAK: ");
+    lcd.print(countCurrentStreak(0b00011111));
+    delay(1000);
 
     clearDisplay();
     lcd.noBacklight();
